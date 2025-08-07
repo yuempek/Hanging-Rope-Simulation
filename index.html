@@ -1,0 +1,395 @@
+    <!DOCTYPE html>
+    <html lang="tr">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Rüzgar Altında Halat Davranışı</title>
+        <style>
+            body {
+                margin: 0;
+                padding: 20px;
+                background: linear-gradient(135deg, #1e3c72, #2a5298);
+                color: white;
+                font-family: Arial, sans-serif;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            .container {
+                max-width: 1000px;
+                width: 100%;
+                display: contents;
+            }
+            h1 {
+                text-align: center;
+                margin-bottom: 30px;
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            }
+            .controls-panel {
+                padding: 20px;
+                margin: 20px 0;
+                display: flex;
+                flex-direction: row;
+            }
+            .controls-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 20px;
+                margin-bottom: 20px;
+                padding: 50px;
+            }
+            .control-group {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+            label {
+                font-size: 14px;
+                color: #e0e0e0;
+                font-weight: bold;
+            }
+            input[type="range"] {
+                width: 100%;
+                height: 6px;
+                background: rgba(255,255,255,0.3);
+                border-radius: 3px;
+            }
+            .value-display {
+                text-align: center;
+                font-weight: bold;
+                color: #ffeb3b;
+            }
+            canvas {
+                border: 2px solid rgba(255,255,255,0.3);
+                background: white;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            }
+            
+            .hidden {
+                display : none;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Rüzgar Altında Halat Davranışı</h1>
+            
+            <div class="controls-panel">
+                <div class="canvas-grid">
+                    <canvas id="canvas" width="800" height="600"></canvas>
+                </div>
+                <div class="controls-grid">
+                    <div class="control-group">
+                        <label>Rüzgar Hızı (m/s)</label>
+                        <input type="range" id="windSpeed" min="0" max="20" step="0.5" value="5">
+                        <div class="value-display" id="windSpeedValue">5.0 m/s</div>
+                    </div>
+                    <div class="control-group">
+                        <label>Kütle (kg)</label>
+                        <input type="range" id="mass" min="0.1" max="50" step="0.01" value="50">
+                        <div class="value-display" id="massValue">50.0 kg</div>
+                    </div>
+                    <div class="control-group">
+                        <label>Halat Birim Kütlesi (kg)</label>
+                        <input type="range" id="ropemass" min="0.0" max="5" step="0.01" value="1">
+                        <div class="value-display" id="ropemassValue">1.0 kg</div>
+                    </div>
+                    <div class="control-group">
+                        <label>Kütle Drag Katsayısı (Cd)</label>
+                        <input type="range" id="massdragCoeff" min="0.0" max="3" step="0.01" value="0.5">
+                        <div class="value-display" id="massdragCoeffValue">0.5</div>
+                    </div>
+                    <div class="control-group">
+                        <label>Halat Drag Katsayısı (Cd)</label>
+                        <input type="range" id="ropedragCoeff" min="0.0" max="3" step="0.01" value="0.5">
+                        <div class="value-display" id="ropedragCoeffValue">0.5</div>
+                    </div>
+                    <div class="control-group">
+                        <label>Halat Yüzey Alanı (m²)</label>
+                        <input type="range" id="ropearea" min="0.00" max="0.5" step="0.01" value="0.1">
+                        <div class="value-display" id="ropeareaValue">0.10 m²</div>
+                    </div>
+                    <div class="control-group">
+                        <label>Kütle Yüzey Alanı (m²)</label>
+                        <input type="range" id="massarea" min="0.01" max="0.5" step="0.01" value="0.1">
+                        <div class="value-display" id="massareaValue">0.10 m²</div>
+                    </div>
+                    <div class="control-group">
+                        <label>İp Uzunluğu (m)</label>
+                        <input type="range" id="ropeLength" min="0.5" max="5" step="0.01" value="1">
+                        <div class="value-display" id="ropeLengthValue">1.0 m</div>
+                    </div>
+                    <div class="control-group">
+                        <label>Hava Yoğunluğu (kg/m³)</label>
+                        <input type="range" id="airDensity" min="0.5" max="2" step="0.01" value="1.2">
+                        <div class="value-display" id="airDensityValue">1.2 kg/m³</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <script>
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Sabitler
+            const g = 9.81; // Yerçekimi ivmesi (m/s²)
+            
+            // Canvas koordinatları
+            const startX = canvas.width / 2;
+            const startY = 10; // Üst kısımda asma noktası
+            const scale = 20; // 1 metre = 80 pixel
+        
+            let params = [];
+            
+            // Parametreler
+            let ropeParam = {
+                windSpeed: 5,      // m/s
+                mass: 1,           // kg
+                dragCoeff: 0.5,    // boyutsuz
+                area: 0.1,         // m²
+                ropeLength: 1,     // m
+                airDensity: 1.2    // kg/m³
+            };
+            
+            let massParam = {
+                windSpeed: 5,      // m/s
+                mass: 50,           // kg
+                dragCoeff: 0.5,    // boyutsuz
+                area: 0.1,         // m²
+                ropeLength: 1,     // m
+                airDensity: 1.2    // kg/m³
+            };
+
+
+            for (let i = 0; i < 20; i++) {
+                params.push(ropeParam);
+            }
+            
+            params.push(massParam);
+            
+            // Drag kuvvetini hesapla
+            function calculateDragForce(windSpeed, dragCoeff, area, airDensity) {
+                return 0.5 * airDensity * windSpeed * windSpeed * dragCoeff * area;
+            }
+
+            // Denge açısını hesapla
+            function calculateEquilibriumAngle(dragForce, weight) {
+                // const weight = mass * g;
+                // tan(θ) = F_drag / (m * g)
+                const tanAngle = dragForce / weight;
+                const angleRad = Math.atan(tanAngle);
+                const angleDeg = angleRad * 180 / Math.PI;
+                return { angleRad, angleDeg };
+            }
+
+            // Pozisyonu hesapla
+            function calculatePosition(angle, length) {
+                const x = -length * Math.sin(angle);
+                const y = -length * Math.cos(angle); // Negatif çünkü aşağı doğru
+                return { x, y };
+            }
+
+            // Canvas koordinatlarına çevir
+            function toCanvas(refX, refY, x, y) {
+                return {
+                    x: refX + x * scale,
+                    y: refY - y * scale
+                };
+            }
+
+            function drawi(centerX, centerY, positionX, positionY, weight, dragForce, tension, massmarkersize) {
+            
+                // Asma noktası
+                ctx.fillStyle = '#ccc';
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, 1, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                // İp
+                // const massPos = toCanvas(centerX, centerY, positionX, positionY);
+                const massPos = {x: positionX, y: positionY};
+                ctx.strokeStyle = '#8d6e63';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(massPos.x, massPos.y);
+                ctx.stroke();
+                
+                ctx.fillStyle = '#555';
+                ctx.beginPath();
+                ctx.arc(massPos.x, massPos.y, massmarkersize, 0, 2 * Math.PI);
+                ctx.fill();
+               
+                // // Kuvvet etiketleri
+                // ctx.fillStyle = '#4caf50';
+                // ctx.font = '12px Arial';
+                // ctx.fillText(`Ağırlık: ${weight.toFixed(1)} N`, massPos.x + 20, massPos.y + 40);
+                // 
+                // ctx.fillStyle = '#ff9800';
+                // ctx.fillText(`Drag: ${dragForce.toFixed(1)} N`, massPos.x - 100, massPos.y - 10);
+                // 
+                // ctx.fillStyle = '#9c27b0';
+                // ctx.fillText(`Gerilim: ${tension.toFixed(1)} N`, massPos.x + 20, massPos.y - 20);
+                
+            }
+            
+            
+            // Çizim fonksiyonu
+            function draw() {
+                // Canvas'ı temizle
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                { // rüzgar
+                    // Rüzgar çizgileri çiz
+                    ctx.strokeStyle = '#CCC';
+                    ctx.lineWidth = 2;
+                    for (let i = 0; i < 1; i++) {
+                        const y = 50 + i * 50;
+                        ctx.beginPath();
+                        ctx.moveTo(canvas.width - 100, y);
+                        ctx.lineTo(canvas.width - 20, y);
+                        ctx.stroke();
+                        
+                        // Rüzgar ok başları
+                        ctx.beginPath();
+                        ctx.moveTo(canvas.width - 100 + 00 , y);
+                        ctx.lineTo(canvas.width - 100 + 10 , y - 5);
+                        ctx.moveTo(canvas.width - 100 + 00 , y);
+                        ctx.lineTo(canvas.width - 100 + 10 , y + 5);
+                        ctx.stroke();
+                    }
+                
+                    // Rüzgar etiketi
+                    ctx.fillStyle = '#1976d2';
+                    ctx.font = 'bold 16px Arial';
+                    ctx.fillText(`Rüzgar: ${ropeParam.windSpeed} m/s`, canvas.width - 150, 30);
+                }
+                
+                const dragForces = [];
+                const weights = [];
+                const equilibriums = [];
+                const positions = [];
+                const tensions = [];
+                const areas = [];
+
+                let prevTensionX = 0;
+                let prevTensionY = 0;
+                
+                
+                for(let i = params.length-1; i >= 0; i--) {
+                    let dragForce = calculateDragForce(params[i].windSpeed, params[i].dragCoeff, params[i].area, params[i].airDensity);
+                    let weight = params[i].mass * g;
+                    let tensionX = dragForce + prevTensionX;
+                    let tensionY = weight + prevTensionY;
+                    let tension = Math.sqrt(tensionX*tensionX + tensionY*tensionY);
+                    let equilibrium = calculateEquilibriumAngle(tensionX, tensionY);
+                    let position = calculatePosition(equilibrium.angleRad, params[i].ropeLength);
+                    let area = params[i].area;
+                    
+                    dragForces.push(dragForce);
+                    weights.push(weight);
+                    equilibriums.push(equilibrium);
+                    positions.push(position);
+                    tensions.push(tension);
+                    areas.push(area);
+                    
+                    prevTensionX = tensionX;
+                    prevTensionY = tensionY;
+                    
+                }
+                
+                let centerX = startX;
+                let centerY = startY;
+                
+                for(let i = params.length-1; i >= 0; i--) {
+                    let dragForce = dragForces[i];
+                    let weight = weights[i];
+                    let tension = tensions[i];
+                    let position = positions[i];
+                    
+                    let px = position.x;
+                    let py = position.y;
+                    let p = toCanvas(centerX, centerY, px, py);
+                    
+                    let a = areas[i];
+                    let r = Math.sqrt(a);
+                    let v = r*r*r;
+                    
+                    
+                    
+                    
+                    drawi(centerX, centerY, p.x, p.y, weight, dragForce, tension, weight*v);
+                    
+                    centerX = p.x;
+                    centerY = p.y;
+                }     
+             }
+
+            // Kontrol güncellemeleri
+            function updateControls() {
+                document.getElementById('windSpeed').addEventListener('input', function() {
+                    ropeParam.windSpeed = parseFloat(this.value);
+                    massParam.windSpeed = parseFloat(this.value);
+                    document.getElementById('windSpeedValue').textContent = `${ropeParam.windSpeed.toFixed(1)} m/s`;
+                    draw();
+                });
+                
+                document.getElementById('mass').addEventListener('input', function() {
+                    massParam.mass = parseFloat(this.value);
+                    document.getElementById('massValue').textContent = `${massParam.mass.toFixed(1)} kg`;
+                    draw();
+                });
+                
+                document.getElementById('ropemass').addEventListener('input', function() {
+                    ropeParam.mass = parseFloat(this.value);
+                    document.getElementById('ropemassValue').textContent = `${ropeParam.mass.toFixed(1)} kg`;
+                    draw();
+                });
+                
+                document.getElementById('massdragCoeff').addEventListener('input', function() {
+                    massParam.dragCoeff = parseFloat(this.value);
+                    document.getElementById('massdragCoeffValue').textContent = ropeParam.dragCoeff.toFixed(1);
+                    draw();
+                });
+                
+                document.getElementById('ropedragCoeff').addEventListener('input', function() {
+                    ropeParam.dragCoeff = parseFloat(this.value);
+                    document.getElementById('ropedragCoeffValue').textContent = ropeParam.dragCoeff.toFixed(1);
+                    draw();
+                });
+                
+                document.getElementById('ropearea').addEventListener('input', function() {
+                    ropeParam.area = parseFloat(this.value);
+                    document.getElementById('ropeareaValue').textContent = `${ropeParam.area.toFixed(2)} m²`;
+                    draw();
+                });
+                
+                document.getElementById('massarea').addEventListener('input', function() {
+                    massParam.area = parseFloat(this.value);
+                    document.getElementById('massareaValue').textContent = `${massParam.area.toFixed(2)} m²`;
+                    draw();
+                });
+                
+                document.getElementById('ropeLength').addEventListener('input', function() {
+                    ropeParam.ropeLength = parseFloat(this.value);
+                    massParam.ropeLength = parseFloat(this.value);
+                    document.getElementById('ropeLengthValue').textContent = `${ropeParam.ropeLength.toFixed(1)} m`;
+                    draw();
+                });
+                
+                document.getElementById('airDensity').addEventListener('input', function() {
+                    ropeParam.airDensity = parseFloat(this.value);
+                    massParam.airDensity = parseFloat(this.value);
+                    document.getElementById('airDensityValue').textContent = `${ropeParam.airDensity.toFixed(1)} kg/m³`;
+                    draw();
+                });
+            }
+
+            // Başlat
+            updateControls();
+            draw();
+        </script>
+    </body>
+    </html>
