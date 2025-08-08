@@ -81,13 +81,13 @@
                 <div class="controls-grid">
                     <div class="control-group">
                         <label>Rüzgar Hızı (m/s)</label>
-                        <input type="range" id="windSpeed" min="0" max="20" step="0.5" value="5">
+                        <input type="range" id="windSpeed" min="0" max="100" step="0.5" value="5">
                         <div class="value-display" id="windSpeedValue">5.0 m/s</div>
                     </div>
                     <div class="control-group">
                         <label>Kütle (kg)</label>
-                        <input type="range" id="mass" min="0.1" max="50" step="0.01" value="50">
-                        <div class="value-display" id="massValue">50.0 kg</div>
+                        <input type="range" id="mass" min="0.0" max="5000" step="0.01" value="15">
+                        <div class="value-display" id="massValue">15.0 kg</div>
                     </div>
                     <div class="control-group">
                         <label>Halat Birim Kütlesi (kg)</label>
@@ -96,32 +96,32 @@
                     </div>
                     <div class="control-group">
                         <label>Kütle Drag Katsayısı (Cd)</label>
-                        <input type="range" id="massdragCoeff" min="0.0" max="3" step="0.01" value="0.5">
+                        <input type="range" id="massdragCoeff" min="0.0" max="5" step="0.01" value="0.5">
                         <div class="value-display" id="massdragCoeffValue">0.5</div>
                     </div>
                     <div class="control-group">
                         <label>Halat Drag Katsayısı (Cd)</label>
-                        <input type="range" id="ropedragCoeff" min="0.0" max="3" step="0.01" value="0.5">
+                        <input type="range" id="ropedragCoeff" min="0.0" max="5" step="0.01" value="0.5">
                         <div class="value-display" id="ropedragCoeffValue">0.5</div>
                     </div>
                     <div class="control-group">
                         <label>Halat Yüzey Alanı (m²)</label>
-                        <input type="range" id="ropearea" min="0.00" max="0.5" step="0.01" value="0.1">
-                        <div class="value-display" id="ropeareaValue">0.10 m²</div>
+                        <input type="range" id="ropearea" min="0.00" max="1.0" step="0.001" value="0.01">
+                        <div class="value-display" id="ropeareaValue">0.01 m²</div>
                     </div>
                     <div class="control-group">
                         <label>Kütle Yüzey Alanı (m²)</label>
-                        <input type="range" id="massarea" min="0.01" max="0.5" step="0.01" value="0.1">
-                        <div class="value-display" id="massareaValue">0.10 m²</div>
+                        <input type="range" id="massarea" min="0.00" max="1.0" step="0.001" value="0.01">
+                        <div class="value-display" id="massareaValue">0.01 m²</div>
                     </div>
                     <div class="control-group">
                         <label>İp Uzunluğu (m)</label>
-                        <input type="range" id="ropeLength" min="0.5" max="5" step="0.01" value="1">
+                        <input type="range" id="ropeLength" min="0.5" max="2" step="0.01" value="1">
                         <div class="value-display" id="ropeLengthValue">1.0 m</div>
                     </div>
                     <div class="control-group">
                         <label>Hava Yoğunluğu (kg/m³)</label>
-                        <input type="range" id="airDensity" min="0.5" max="2" step="0.01" value="1.2">
+                        <input type="range" id="airDensity" min="0.0" max="20" step="0.01" value="1.2">
                         <div class="value-display" id="airDensityValue">1.2 kg/m³</div>
                     </div>
                 </div>
@@ -332,31 +332,31 @@
                 document.getElementById('windSpeed').addEventListener('input', function() {
                     ropeParam.windSpeed = parseFloat(this.value);
                     massParam.windSpeed = parseFloat(this.value);
-                    document.getElementById('windSpeedValue').textContent = `${ropeParam.windSpeed.toFixed(1)} m/s`;
+                    document.getElementById('windSpeedValue').textContent = `${ropeParam.windSpeed.toFixed(2)} m/s`;
                     draw();
                 });
                 
                 document.getElementById('mass').addEventListener('input', function() {
                     massParam.mass = parseFloat(this.value);
-                    document.getElementById('massValue').textContent = `${massParam.mass.toFixed(1)} kg`;
+                    document.getElementById('massValue').textContent = `${massParam.mass.toFixed(2)} kg`;
                     draw();
                 });
                 
                 document.getElementById('ropemass').addEventListener('input', function() {
                     ropeParam.mass = parseFloat(this.value);
-                    document.getElementById('ropemassValue').textContent = `${ropeParam.mass.toFixed(1)} kg`;
+                    document.getElementById('ropemassValue').textContent = `${ropeParam.mass.toFixed(2)} kg`;
                     draw();
                 });
                 
                 document.getElementById('massdragCoeff').addEventListener('input', function() {
                     massParam.dragCoeff = parseFloat(this.value);
-                    document.getElementById('massdragCoeffValue').textContent = ropeParam.dragCoeff.toFixed(1);
+                    document.getElementById('massdragCoeffValue').textContent = massParam.dragCoeff.toFixed(2);
                     draw();
                 });
                 
                 document.getElementById('ropedragCoeff').addEventListener('input', function() {
                     ropeParam.dragCoeff = parseFloat(this.value);
-                    document.getElementById('ropedragCoeffValue').textContent = ropeParam.dragCoeff.toFixed(1);
+                    document.getElementById('ropedragCoeffValue').textContent = ropeParam.dragCoeff.toFixed(2);
                     draw();
                 });
                 
@@ -375,14 +375,14 @@
                 document.getElementById('ropeLength').addEventListener('input', function() {
                     ropeParam.ropeLength = parseFloat(this.value);
                     massParam.ropeLength = parseFloat(this.value);
-                    document.getElementById('ropeLengthValue').textContent = `${ropeParam.ropeLength.toFixed(1)} m`;
+                    document.getElementById('ropeLengthValue').textContent = `${ropeParam.ropeLength.toFixed(2)} m`;
                     draw();
                 });
                 
                 document.getElementById('airDensity').addEventListener('input', function() {
                     ropeParam.airDensity = parseFloat(this.value);
                     massParam.airDensity = parseFloat(this.value);
-                    document.getElementById('airDensityValue').textContent = `${ropeParam.airDensity.toFixed(1)} kg/m³`;
+                    document.getElementById('airDensityValue').textContent = `${ropeParam.airDensity.toFixed(2)} kg/m³`;
                     draw();
                 });
             }
@@ -392,4 +392,5 @@
             draw();
         </script>
     </body>
+
     </html>
