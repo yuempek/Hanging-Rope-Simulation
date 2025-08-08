@@ -362,13 +362,13 @@
                 
                 document.getElementById('ropearea').addEventListener('input', function() {
                     ropeParam.area = parseFloat(this.value);
-                    document.getElementById('ropeareaValue').textContent = `${ropeParam.area.toFixed(2)} m²`;
+                    document.getElementById('ropeareaValue').textContent = `${ropeParam.area.toFixed(3)} m²`;
                     draw();
                 });
                 
                 document.getElementById('massarea').addEventListener('input', function() {
                     massParam.area = parseFloat(this.value);
-                    document.getElementById('massareaValue').textContent = `${massParam.area.toFixed(2)} m²`;
+                    document.getElementById('massareaValue').textContent = `${massParam.area.toFixed(3)} m²`;
                     draw();
                 });
                 
@@ -394,3 +394,4 @@
     </body>
 
     </html>
+
